@@ -1,3 +1,7 @@
+
+
+
+
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark"> <!--begin::Sidebar Brand-->
             <div class="sidebar-brand"> <!--begin::Brand Link--> <a href="./index.html" class="brand-link"> <!--begin::Brand Image--> <img src="../../dist/assets/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image opacity-75 shadow"> <!--end::Brand Image--> <!--begin::Brand Text--> <span class="brand-text fw-light">AdminLTE 4</span> <!--end::Brand Text--> </a> <!--end::Brand Link--> </div> <!--end::Sidebar Brand--> <!--begin::Sidebar Wrapper-->
             <div class="sidebar-wrapper">
@@ -12,15 +16,15 @@
 
                             <ul class="nav nav-treeview">
 
-                                <li class="nav-item"> <a href="./index.html" class="nav-link active"> <i class="nav-icon bi bi-circle"></i>
+                                <li class="nav-item"> <a href="personal.php" class="nav-link active"> <i class="nav-icon bi bi-circle"></i>
                                         <p>Personal</p>
                                     </a> </li>
 
-                                    <li class="nav-item"> <a href="./index2.html" class="nav-link active"> <i class="nav-icon bi bi-circle"></i>
+                                    <li class="nav-item"> <a href="servicios.php" class="nav-link active"> <i class="nav-icon bi bi-circle"></i>
                                         <p>Servicios</p>
                                     </a> </li>
 
-                                    <li class="nav-item"> <a href="./index.html" class="nav-link active"> <i class="nav-icon bi bi-circle"></i>
+                                    <li class="nav-item"> <a href="recursos.php" class="nav-link active"> <i class="nav-icon bi bi-circle"></i>
                                         <p>Recursos</p>
                                     </a> </li>
                             </ul>
