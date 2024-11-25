@@ -7,7 +7,9 @@
 
 
 include ("Config.php");
-include ('Models.php');
+
+//include(__DIR__ . "/Models.php"); // Ruta relativa
+
 
 
 class Connection
@@ -27,6 +29,8 @@ class Connection
 
     public function Connect()
     {
+
+
         $conn = oci_connect($this->db_user, $this->db_pass, '(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=XE)))', 'AL32UTF8');
 
         //$conn_string = "(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=$this->db_name)))";
@@ -65,12 +69,12 @@ class Connection
 
         // // Liberar recursos
         // oci_free_statement($stid);
-        // oci_close($conn);
+        
 
 
 
 
-            // return $conn;
+        return $conn;
     }
 
 
@@ -78,15 +82,38 @@ class Connection
 
 // $newconnection = new Connection("SYSTEM", "123", "XE");
 
-// $newconnection->Connect()
+// $newconnection->Connect();
 
 // if($newconnection->Connect()){
 //  echo "Conectado";   
 // }
 
 
+// $sql =  "BEGIN RCJNFRJR_INSERT_EMPLOYEE(
+//     'juanPHP2',        -- first_name
+//     'juanin',         -- last_name
+//     570000,         -- salary (sin punto como separador decimal, si es un número entero)
+//     SYSDATE,
+//     'BANCOESTADO',
+//     'CORRIENTE',
+//     123
+//  );
+//  END;";
 
+// // Prepara la consulta
 
+// $conn = $newconnection->Connect();
+// $stid = oci_parse($conn, $sql);
+
+// // Ejecutar la consulta
+// if (!oci_execute($stid)) {
+// $e = oci_error($stid);
+// throw new Exception("Error al ejecutar el procedimiento: " . htmlentities($e['message']));
+// }
+
+// oci_close($conn);
+
+// Ruta relativa
 
 
 ?>
