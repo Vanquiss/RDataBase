@@ -22,12 +22,6 @@
  DEALLOCATE EmployeeData
 
 
-
-
-
-
-
-
  ----------------------------- CURSOR --------------------------------
 
 --CURSOR PARA LISTAR EMPLEADOS Y SUS TRABAJOS
@@ -40,4 +34,96 @@ BEGIN
     FOR EMPLOYEE_RECORD IN EMPLOYEE_CURSOR LOOP
         DBMS_OUTPUT.PUT_LINE(EMPLOYEE_RECORD.FIRST_NAME ||' '|| EMPLOYEE_RECORD.LAST_NAME ||' '|| EMPLOYEE_RECORD.JOB_TITLE);
     END LOOP;
+END;
+
+
+
+
+
+----------------------------- CURSOR --------------------------------
+
+--PARA OBTENER TODOS LOS DETALES DE UN EMPLEADO
+DECLARE CURSOR RCJNFRJR_EMPLOYEE_DETAILS IS
+    SELECT E.EMPLOYEE_ID, E.FIRST_NAME, E.LAST_NAME, E.SALARY, E.HIRE_DATE, 
+           B.BANK_NAME, B.ACCOUNT_TYPE, J.JOB_TITLE
+      FROM RCJNFRJR_EMPLOYEE E 
+      JOIN RCJNFRJR_BANK_ACCOUNT B ON(E.ACCOUNT_NUMBER = B.ACCOUNT_NUMBER)
+      JOIN RCJNFRJR_JOBS J ON (E.JOB_ID = J.JOB_ID);
+BEGIN
+  FOR EMPLOYEE_DETAILS IN RCJNFRJR_EMPLOYEE_DETAILS LOOP
+    DBMS_OUTPUT.PUT_LINE('ID del empleado: ' || EMPLOYEE_DETAILS.EMPLOYEE_ID);
+    DBMS_OUTPUT.PUT_LINE('Nombre: ' || EMPLOYEE_DETAILS.FIRST_NAME || ' ' || EMPLOYEE_DETAILS.LAST_NAME);
+    DBMS_OUTPUT.PUT_LINE('Salario: ' || EMPLOYEE_DETAILS.SALARY);
+    DBMS_OUTPUT.PUT_LINE('Fecha de contratación: ' || EMPLOYEE_DETAILS.HIRE_DATE);
+    DBMS_OUTPUT.PUT_LINE('Banco: ' || EMPLOYEE_DETAILS.BANK_NAME);
+    DBMS_OUTPUT.PUT_LINE('Tipo de cuenta: ' || EMPLOYEE_DETAILS.ACCOUNT_TYPE);
+    DBMS_OUTPUT.PUT_LINE('Trabajo: ' || EMPLOYEE_DETAILS.JOB_TITLE);
+  END LOOP;
+  EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Datos no encontrados.');
+        WHEN OTHERS THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Ocurrió un error inesperado.');
+    ROLLBACK;
+END;
+
+
+
+CREATE OR REPLACE PROCEDURE GET_EMPLOYEE_DETAILS (
+    EMPLOYEE_CURSOR OUT SYS_REFCURSOR
+)
+IS
+BEGIN
+    -- Abre un cursor que selecciona los detalles del empleado
+    OPEN EMPLOYEE_CURSOR FOR
+        SELECT E.EMPLOYEE_ID, 
+               E.FIRST_NAME, 
+               E.LAST_NAME, 
+               E.SALARY, 
+               TO_CHAR(E.HIRE_DATE, 'YYYY-MM-DD') AS HIRE_DATE, 
+               B.BANK_NAME, 
+               B.ACCOUNT_TYPE, 
+               J.JOB_TITLE
+          FROM RCJNFRJR_EMPLOYEE E 
+          JOIN RCJNFRJR_BANK_ACCOUNT B ON (E.ACCOUNT_NUMBER = B.ACCOUNT_NUMBER)
+          JOIN RCJNFRJR_JOBS J ON (E.JOB_ID = J.JOB_ID);
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20001, 'No se encontraron empleados.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20010, 'Ocurrió un error inesperado.');
+END;
+/
+
+
+
+
+
+
+
+
+
+
+create or replace NONEDITIONABLE PROCEDURE GET_JOBS_DETAILS (
+    EMPLOYEE_CURSOR OUT SYS_REFCURSOR
+)
+IS
+BEGIN
+    -- Abre un cursor que selecciona los detalles del empleado
+    OPEN JOBS_CURSOR FOR
+         SELECT J.JOB_ID,
+               J.JOB_TITLE,
+               J.MIN_SALARY,
+               J.MAX_SALARY
+               
+               
+          FROM RCJNFRJR_JOBS J ;
+         
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20001, 'No se encontraron empleados.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20010, 'Ocurrió un error inesperado.');
 END;

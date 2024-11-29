@@ -3,15 +3,15 @@
 
 <?php
 
-include_once __DIR__ . '/../Controllers/EmployeeController.php';
-include_once __DIR__ . '/../Models/EmployeeModel.php';
+include_once __DIR__ . '/../Controllers/JobsController.php';
+include_once __DIR__ . '/../Models/JobModel.php';
 
 
-class EmployeeView
+class JobView
 {
     private $controller;
 
-    public function __construct(EmployeeController $controller)
+    public function __construct(JobsController $controller)
     {
         $this->controller = $controller;
     }
@@ -27,38 +27,11 @@ class EmployeeView
         $this->controller->handleJsonMessage($message);
     }
 
-    public function InsertEmployee(EmployeeStruct $EmployeeData)
-    {
-        
-    }
-
-
-
-    // public function ShowEmployees()
-    // {
-    //     $empleados = $this->controller->EmployeeList();
-
-    //     echo "<h1>Lista de Empleados</h1>";
-    //     echo "<table border='1'>
-    //             <tr>
-    //                 <th>ID</th>
-    //                 <th>Nombre</th>
-    //                 <th>Apellido</th>
-    //                 <th>Salario</th>
-    //             </tr>";
-
-    //     foreach ($empleados as $empleado) {
-    //         echo "<tr>
-    //                 <td>{$empleado['EMPLOYEE_ID']}</td>
-    //                 <td>{$empleado['FIRST_NAME']}</td>
-    //                 <td>{$empleado['LAST_NAME']}</td>
-    //                 <td>{$empleado['SALARY']}</td>
-    //               </tr>";
-    //     }
-
-    //     echo "</table>";
-    // }
+  
 }
+
+
+
 ?>
 
 
