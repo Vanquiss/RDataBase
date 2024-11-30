@@ -25,13 +25,9 @@ class ServiceStruct {
 class ServiceModel extends BaseModel
 
 {
-    public function __construct()
-    {
-        echo 'Models';
-    }
+    
 
-
-    public function NewService(ServiceStruct $ServiceData)
+    public function NewService($ServiceData)
     {
         try {
             // Verifica conexión a la base de datos
@@ -45,13 +41,22 @@ class ServiceModel extends BaseModel
             $newconnection = new Connection("SYSTEM", "123", "XE");
             $connection = $newconnection->Connect();
         
+           
+            $serv_name = $ServiceData['service_name'];
+            $serv_des = $ServiceData['description'];
+            $startDate = $ServiceData['start_date'];
+            $endDate = $ServiceData['end_date'];
+            $serv_condition = $ServiceData['condition'];
+
             // Define la llamada al procedimiento con sus parámetros
             $sql =  "BEGIN RCJNFRJR_INSERT_SERVICE(
-                        '$ServiceData->serv_name',        
-                        '$ServiceData->description',       
-                        '$ServiceData->startdate',         
-                        '$ServiceData->endate',
-                        '$ServiceData->serv_condition'
+            
+                        '$serv_name',
+                        '$serv_des',
+                        TO_DATE('$startDate', 'YYYY-MM-DD'),
+                        TO_DATE('$endDate', 'YYYY-MM-DD'),
+                        '$serv_condition'
+
                         );
                     END;";
                     
@@ -89,6 +94,65 @@ class ServiceModel extends BaseModel
 
         
     }
+
+
+    
+    public function getServices():array
+    {
+        try {
+            // Crear una nueva conexión a la base de datos
+            $newconnection = new Connection("SYSTEM", "123", "XE");
+            $connection = $newconnection->Connect();
+    
+            // Preparar la consulta para llamar al procedimiento
+            $sql = "BEGIN GET_SERVICE_DETAILS(:service_cursor); END;";
+    
+            // Preparar la declaración
+            $stid = oci_parse($connection, $sql);
+    
+            // Crear un cursor para almacenar los resultados
+            $employeeCursor = oci_new_cursor($connection);
+    
+            // Asociar el cursor al parámetro de salida
+            oci_bind_by_name($stid, ":service_cursor", $employeeCursor, -1, OCI_B_CURSOR);
+    
+            // Ejecutar la declaración
+            if (!oci_execute($stid)) {
+                $error = oci_error($stid);
+                return [];
+                throw new Exception("Error ejecutando el procedimiento: " . $error['message']);
+            }
+    
+            // Ejecutar el cursor para obtener los resultados
+            if (!oci_execute($employeeCursor)) {
+                $error = oci_error($employeeCursor);
+                return [];
+                throw new Exception("Error ejecutando el cursor: " . $error['message']);
+
+            }
+    
+            // Procesar los resultados del cursor
+            $employees = [];
+            while (($row = oci_fetch_assoc($employeeCursor)) !== false) {
+                $employees[] = $row; // Agregar cada fila a la lista de empleados
+            }
+    
+            // Liberar recursos
+            oci_free_statement($stid);
+            oci_free_statement($employeeCursor);
+            oci_close($connection);
+    
+            // Devolver los datos obtenidos
+            return $employees;
+    
+        } catch (Exception $e) {
+            echo "Ocurrió un error: " . $e->getMessage();
+    
+            // Asegúrate de devolver un array vacío en caso de error
+            return [];
+        }
+    }
+    
 
 
 }

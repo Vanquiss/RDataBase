@@ -17,9 +17,7 @@ Class MaterialStruct{
 
 class MaterialModel extends BaseModel
 {
-    public function __construct() {
-        echo 'skere';
-    }
+   
     public function NewMaterial(MaterialStruct $MaterialData)
     {
         try {

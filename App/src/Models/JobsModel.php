@@ -16,10 +16,7 @@ Class JobsStruct{
 
 Class JobsModels extends BaseModel
 {
-    public function __construct()
-    {
-        echo 'sdlks';
-    }
+    
 
     public function NewJob($jobData)
     {
