@@ -24,9 +24,9 @@
                                         <p>Servicios</p>
                                     </a> </li>
 
-                                    <li class="nav-item"> <a href="recursos.php" class="nav-link active"> <i class="nav-icon bi bi-circle"></i>
+                                    <!-- <li class="nav-item"> <a href="recursos.php" class="nav-link active"> <i class="nav-icon bi bi-circle"></i>
                                         <p>Recursos</p>
-                                    </a> </li>
+                                    </a> </li> -->
                             </ul>
 
                         </li>

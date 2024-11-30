@@ -127,3 +127,35 @@ EXCEPTION
     WHEN OTHERS THEN
         RAISE_APPLICATION_ERROR(-20010, 'Ocurrió un error inesperado.');
 END;
+
+
+
+
+CREATE OR REPLACE PROCEDURE GET_SERVICE_DETAILS (
+    SERVICE_CURSOR OUT SYS_REFCURSOR
+)
+IS
+BEGIN
+    -- Abre un cursor que selecciona los detalles del empleado
+    OPEN SERVICE_CURSOR FOR
+        SELECT S.ID_SERVICE, 
+               S.SERV_NAME, 
+               S.SERV_DESCRIPTION, 
+               S.STARTDATE,
+               S.ENDDATE,
+               S.SERV_CONDITION 
+               
+          FROM RCJNFRJR_SERVICE S
+          --JOIN RCJNFRJR_BANK_ACCOUNT B ON (E.ACCOUNT_NUMBER = B.ACCOUNT_NUMBER)
+          --JOIN RCJNFRJR_JOBS J ON (E.JOB_ID = J.JOB_ID);
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20001, 'No se encontraron servicios.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20010, 'Ocurrió un error inesperado.');
+END;
+/
+
+
+

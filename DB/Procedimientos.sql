@@ -167,3 +167,219 @@ BEGIN
             RAISE_APPLICATION_ERROR(-20010, 'Ocurrió un error inesperado: ');
     ROLLBACK;
 END;
+
+
+--INSERTAR SERVICIO
+CREATE OR REPLACE PROCEDURE RCJNFRJR_INSERT_SERVICE(
+    SERVICE_NAME_P VARCHAR2 DEFAULT NULL,
+    SERV_DESCRIPTION_P VARCHAR2,
+    STARTDATE_P DATE,
+    ENDDATE_P DATE,
+    CONDITION_P VARCHAR2
+)
+IS
+BEGIN
+    LOCK TABLE RCJNFRJR_MATERIALS IN ROW EXCLUSIVE MODE;
+
+    INSERT INTO RCJNFRJR_SERVICE(SERV_NAME, SERV_DESCRIPTION, STARTDATE, ENDDATE, SERV_CONDITION)
+        VALUES(SERVICE_NAME_P, SERV_DESCRIPTION_P, STARTDATE_P, ENDDATE_P, CONDITION_P);
+    
+    COMMIT;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Servicio no encontrado.');
+        WHEN OTHERS THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Ocurrió un error inesperado.');
+    ROLLBACK;
+END;
+
+
+create or replace NONEDITIONABLE TRIGGER RCJNFRJR_PK_SERVICE
+BEFORE INSERT
+ON RCJNFRJR_SERVICE
+FOR EACH ROW 
+BEGIN
+	SELECT MAX(ID_SERVICE)+1 INTO :NEW.ID_SERVICE FROM RCJNFRJR_SERVICE;
+
+	IF(:NEW.ID_SERVICE IS NULL)THEN
+		:NEW.ID_SERVICE := 1;
+	END IF;
+END;
+
+
+CREATE OR REPLACE NONEDITIONABLE PROCEDURE GET_SERVICE_DETAILS(
+    SERVICE_CURSOR OUT SYS_REFCURSOR
+)
+IS
+BEGIN
+    -- Abrir un cursor que devuelve todos los detalles relevantes de los servicios
+    OPEN SERVICE_CURSOR FOR
+        SELECT 
+            S.ID_Service AS Service_ID,
+            S.Serv_Name AS "NOMBRE SERVICIO",
+            S.Serv_Description,
+            S.StartDate AS "FECHA INICIO",
+            S.EndDate AS "FECHA TERMINO",
+            S.Serv_Condition,
+            M.ID_Materials,
+            M.Material_Name AS "NOMBRE MATERIAL",
+            M.Material_Quantity AS "CANTIDAD MATERIAL",
+            E.ID_Equipment,
+            E.Equipment_Name AS "NOMBRE EQUIPO",
+            E.Equipment_Condition,
+            EMP.Employee_ID, 
+            CONCAT(EMP.First_Name,  CONCAT(' ',EMP.Last_Name)) AS "NOMBRE EMPLEADO",
+           
+            
+            DSE.Worked_Days AS "DIAS TRABAJADOS"
+        FROM RCJNFRJR_Service S
+        -- Materiales relacionados
+        LEFT JOIN RCJNFRJR_DETAIL_Service_Materials SM ON S.ID_Service = SM.ID_Service
+        LEFT JOIN RCJNFRJR_Materials M ON SM.ID_Materials = M.ID_Materials
+        -- Equipos relacionados
+        LEFT JOIN RCJNFRJR_DETAIL_Service_Equipment SE ON S.ID_Service = SE.ID_Service
+        LEFT JOIN RCJNFRJR_Equipment E ON SE.ID_Equipment = E.ID_Equipment
+        -- Empleados asignados
+        LEFT JOIN RCJNFRJR_Detail_Service_Employee DSE ON S.ID_Service = DSE.ID_Service
+        LEFT JOIN RCJNFRJR_Employee EMP ON DSE.Employee_ID = EMP.Employee_ID
+        ORDER BY S.ID_Service;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20001, 'No se encontraron servicios en la base de datos.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20010, 'Ocurrió un error inesperado.');
+END;
+/
+
+
+
+CREATE OR REPLACE FUNCTION RCJNFRJR_GET_TOTAL_WORKED_DAYS(
+    ID_SERVICE_F NUMBER
+)
+    RETURN NUMBER
+IS
+    STARTDATE_F RCJNFRJR_SERVICE.STARTDATE%TYPE;
+    ENDDATE_F RCJNFRJR_SERVICE.ENDDATE%TYPE;
+    TOTAL_DAYS NUMBER;
+BEGIN
+    SELECT STARTDATE, ENDDATE INTO STARTDATE_F, ENDDATE_F
+    FROM RCJNFRJR_SERVICE
+    WHERE (ID_SERVICE = ID_SERVICE_F);
+
+    TOTAL_DAYS := ENDDATE_F - STARTDATE_F;
+
+    RETURN TOTAL_DAYS;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Datos no encontrados.');
+        WHEN OTHERS THEN
+            RAISE_APPLICATION_ERROR(-20010, 'OcurriÃ³ un error inesperado.');
+    ROLLBACK;
+END;
+
+
+CREATE OR REPLACE FUNCTION ASSIGN_EMPLOYEE_TO_SERVICE(
+    p_service_id IN NUMBER,
+    p_employee_id IN NUMBER,
+    p_worked_days IN NUMBER
+) RETURN VARCHAR2
+IS
+BEGIN
+    INSERT INTO RCJNFRJR_Detail_Service_Employee (ID_Service, ID_Employee, RCJNFRJR_GET_TOTAL_WORKED_DAYS(p_service_id))
+    VALUES (p_service_id, p_employee_id, p_worked_days);
+
+    COMMIT;
+    RETURN 'Empleado asignado al servicio con éxito.';
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN 'Error al asignar empleado: ' || SQLERRM;
+END;
+/
+
+
+
+
+
+
+
+
+--REPORTES
+
+Reportes
+Los reportes permitirán al negocio analizar la información para tomar decisiones estratégicas.
+
+1. Reporte de Servicios por Mes
+Este reporte muestra la cantidad de servicios realizados por mes.
+CREATE OR REPLACE FUNCTION GET_SERVICES_BY_MONTH_FN
+    RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+    SELECT TO_CHAR(StartDate, 'YYYY-MM') AS Month, COUNT(*) AS Total_Services
+    FROM RCJNFRJR_Service
+    GROUP BY TO_CHAR(StartDate, 'YYYY-MM')
+    ORDER BY Month;
+
+    RETURN v_cursor;
+END;
+/
+
+2. Reporte de Materiales Más y Menos Consumidos
+Este reporte identifica los materiales que han sido más y menos utilizados en los servicios.
+
+CREATE OR REPLACE FUNCTION GET_TOP_AND_LEAST_USED_MATERIALS_FN
+    RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+    SELECT M.Material_Name, SUM(M.Material_Quantity) AS Total_Consumed
+    FROM RCJNFRJR_detail_Service_Materials SM JOIN RCJNFRJR_MATERIALS M ON (SM.ID_MATERIALS = M.ID_MATERIALS)
+    GROUP BY Material_Name
+    ORDER BY Total_Consumed DESC;
+
+    RETURN v_cursor;
+END;
+/
+
+
+
+3. Reporte de Equipos Más Usados
+CREATE OR REPLACE FUNCTION GET_MOST_USED_EQUIPMENT_FN
+    RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+    SELECT Equipment_Name, COUNT(*) AS Usage_Count
+    FROM RCJNFRJR_DETAIL_Service_Equipment SEQ
+    JOIN RCJNFRJR_Equipment EQ ON EQ.ID_Equipment = SEQ.ID_Equipment
+    GROUP BY Equipment_Name
+    ORDER BY Usage_Count DESC;
+
+    RETURN v_cursor;
+END;
+/
+
+
+
+3. Reporte de Equipos Más Usados
+Este reporte muestra los equipos que se han utilizado más frecuentemente en los servicios.
+
+CREATE OR REPLACE FUNCTION GET_MOST_USED_EQUIPMENT_FN
+    RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+    SELECT Equipment_Name, COUNT(*) AS Usage_Count
+    FROM RCJNFRJR_Service_Equipment
+    JOIN RCJNFRJR_Equipment ON RCJNFRJR_Service_Equipment.ID_Equipment = RCJNFRJR_Equipment.ID_Equipment
+    GROUP BY Equipment_Name
+    ORDER BY Usage_Count DESC;
+
+    RETURN v_cursor;
+END;
+/

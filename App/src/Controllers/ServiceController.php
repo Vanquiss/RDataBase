@@ -8,7 +8,7 @@ class ServiceController extends BaseController
    
 
 
-    public function CreateService(ServiceStruct $ServiceData)
+    public function CreateService($ServiceData)
     {
         $NewService = new ServiceModel();
         $NewService->NewService($ServiceData);
@@ -17,9 +17,10 @@ class ServiceController extends BaseController
 
 
 
-    public function ServiceList()
+    public function getServices()
     {
-        
+        $NewService = new ServiceModel();
+        return $NewService->getServices();
     }
     
 
